@@ -11,11 +11,28 @@ NC='\033[0m' # No Color
 # Asegúrate de que esto coincida con tu docker-compose.yml
 CONTAINER_NAME="ia-api"
 
+# --- Estado del ia-api ---
+ESTADO_SISTEMA() {
+    # 1. Ejecutar docker ps -a y filtrar por el nombre del contenedor.
+    # 2. Usar 'grep Up' para ver si está en estado 'Up' (Running).
+    # 3. Si se encuentra la palabra 'Up', el contenedor está OPERATIVO.
+    # 4. Si no, se asume APAGADO (o en otro estado como Exited).
+    if docker ps --filter "name=${CONTAINER_NAME}" --format '{{.State}}' | grep -q "running"; then
+        echo -e "${GREEN}OPERATIVO${NC}"
+    else
+        # Si el contenedor existe pero no está corriendo, o si no existe en 'ps -a'.
+        echo -e "${RED}APAGADO${NC}"
+    fi
+}
+
 # --- FUNCIÓN DE ENCABEZADO ---
 show_header() {
     clear
     echo -e "${CYAN}=================================================${NC}"
-    echo -e "${CYAN}        NEXUS AI CONTROL CENTER  v1.0      ${NC}"
+    echo -e "${CYAN}        NEXUS AI CONTROL CENTER  v1.0.1      ${NC}"
+    echo -e "${CYAN}=================================================${NC}"
+    echo -e "${RED}                    CONTROL                ${NC} "
+    echo -e "${CYAN}============ Estado del Sistema: $(ESTADO_SISTEMA) ${NC} "
     echo -e "${CYAN}=================================================${NC}"
     echo ""
 }
@@ -30,8 +47,6 @@ fi
 # --- BUCLE PRINCIPAL ---
 while true; do
     show_header
-    echo -e "Estado del Sistema: ${GREEN}OPERATIVO${NC}"
-    echo -e "-------------------------------------------------"
     echo -e "${GREEN}1) Desplegar / Actualizar NexusAI (Build & Up)${NC}"
     echo -e "${YELLOW}2) Reiniciar Gateway (API Only)${NC}"
     echo -e "${CYAN}3) Monitor de Logs (Tiempo Real)${NC}"

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-app = FastAPI(title="IA Hybrid API - leerot Solutions")
+app = FastAPI(title="Leerot - Hybrid NexusAI")
 
 # --- CORS (OBLIGATORIO PARA OPEN WEBUI) ---
 app.add_middleware(

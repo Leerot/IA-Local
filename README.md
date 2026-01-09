@@ -23,3 +23,5 @@ chmod +x nexusai.sh
 sudo ./nexusai.sh
 ```
 > Selecciona la opción 1 para construir y desplegar.
+> Para abrir la pagina web ingresar desde el navegador a 
+> **http://localhost:3000** 

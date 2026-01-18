@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import logging
 import time
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 load_dotenv()
@@ -45,7 +45,14 @@ class ChatCompletionRequest(BaseModel):
     messages: list[Message]
     stream: bool = False
 
-# --- RUTAS QUE OPEN WEBUI BUSCA ---
+# --- Modulo para generar imagenes ---
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+    model: str = "stabilityai/stable-diffusion-xl-base-1.0" # Modelo por defecto
+    n: int = 1
+    size: str = "1024x1024"
+
+# --- RUTA CHAT DE TEXTO ---
 
 @app.get("/v1/models")
 def list_models():
@@ -133,4 +140,38 @@ async def chat_completions(request: ChatCompletionRequest):
         "created": int(time.time()),
         "model": model_used,
         "choices": [{"index": 0, "message": {"role": "assistant", "content": response_text}, "finish_reason": "stop"}]
+    }
+    
+    
+# --- RUTA 2: GENERACIÓN DE IMÁGENES (VÍA POLLINATIONS.AI - GRATIS & ILIMITADO) ---
+@app.post("/v1/images/generations")
+async def generate_image(request: ImageGenerationRequest):
+    """
+    Genera imágenes usando la API pública de Pollinations.ai (Flux/SDXL).
+    No requiere API key
+    """
+    prompt_clean = request.prompt.strip()
+    logger.info(f"Generando imagen con Pollinations: '{prompt_clean[:30]}...'")
+
+    # 1. Construcion de la URL mágica
+    
+    # Pollinations genera la imagen al vuelo cuando se visita este link.
+    # Codificamos el prompt para que sea válido en una URL (espacios -> %20, etc)
+    import urllib.parse
+    encoded_prompt = urllib.parse.quote(prompt_clean)
+    
+    # Podemos añadir parámetros como width, height, seed, model
+    # Modelos disponibles: 'flux', 'turbo'
+    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&model=flux"
+
+    # 2. Devolver la URL directamente a Open WebUI
+    
+    # con esto Open WebUI cargará esta URL y mostrará la imagen generada.
+    logger.info(f"URL Generada: {image_url}")
+
+    return {
+        "created": int(time.time()),
+        "data": [
+            {"url": image_url}
+        ]
     }
